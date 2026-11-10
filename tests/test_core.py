@@ -71,6 +71,12 @@ def test_notes_tags_and_query_filters(library):
     conn.close()
 
 
+def test_invalid_month_filter_is_ignored():
+    parsed = search.parse_query("month:2024-13")
+    assert parsed["since"] is None
+    assert parsed["until"] is None
+
+
 def test_duplicate_groups(library, tmp_path):
     shutil.copyfile(library / "red-square.jpg", library / "red-square-copy.jpg")
     indexer.index_folder(library, run_ocr=False)

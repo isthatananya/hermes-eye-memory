@@ -215,6 +215,7 @@ def index_file(
         "height": height,
         "taken_at": info.get("taken_at") or _file_time(path),
         "ocr": bool(ocr_text),
+        "ocr_text": ocr_text,
         "tags": merged_tags,
         "quality": quality,
         "seconds": round(time.time() - started, 3),

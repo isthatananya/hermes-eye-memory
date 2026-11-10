@@ -140,6 +140,7 @@ def capture(
     )
     result["description"] = _describe(img, result.get("ocr_text", "") if isinstance(result, dict) else "")
     result["ok"] = result.get("status") != "error"
+    result.pop("ocr_text", None)
     return result
 
 

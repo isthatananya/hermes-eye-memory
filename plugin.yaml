@@ -1,0 +1,56 @@
+name: hermes-eye-memory
+version: "0.1.0"
+manifest_version: 2
+api_version: 1
+description: "Local visual memory for Hermes: index a photo library, search by meaning, build albums, cull duplicates, extract receipts, and remember what the camera sees."
+author: "Ananya"
+license: MIT
+homepage: https://github.com/isthatananya/hermes-eye-memory
+tags: [vision, photos, memory, accessibility, local-first]
+requires_hermes: ">=0.22.0"
+platforms: [windows, macos, linux]
+
+provides_tools:
+  - eye_index
+  - eye_index_status
+  - eye_search
+  - eye_album
+  - eye_duplicates
+  - eye_best
+  - eye_receipts
+  - eye_timeline
+  - eye_stats
+  - eye_forget
+  - eye_capture
+  - eye_look
+  - eye_read
+  - eye_find
+  - eye_remember
+  - eye_recall
+
+config_schema:
+  library_path:
+    type: str
+    default: ""
+    label: "Photo library folder"
+    description: "Default folder to index. Leave empty to pass a path to eye_index."
+  ocr_enabled:
+    type: bool
+    default: true
+    label: "Read text in photos (OCR)"
+    description: "Slower indexing, but enables receipt search and text recall."
+  embedding_backend:
+    type: str
+    choices: [clip, fallback]
+    default: clip
+    label: "Image embedding backend"
+    description: "clip gives semantic search. fallback uses color and edge hashes and needs no model download."
+  camera_index:
+    type: int
+    default: 0
+    label: "Camera index"
+    description: "0 is usually the default webcam."
+  max_results:
+    type: int
+    default: 20
+    label: "Default result count"

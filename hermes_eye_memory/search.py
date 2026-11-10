@@ -52,12 +52,13 @@ def parse_query(query: str) -> dict[str, Any]:
                 parsed["since"] = f"{value}-01-01"
                 parsed["until"] = f"{value}-12-31"
         elif key == "month":
-            parsed["since"] = f"{value}-01"
             parts = value.split("-")
             if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
                 year, month = int(parts[0]), int(parts[1])
-                last_day = calendar.monthrange(year, month)[1]
-                parsed["until"] = f"{year:04d}-{month:02d}-{last_day:02d}"
+                if 1 <= month <= 12:
+                    last_day = calendar.monthrange(year, month)[1]
+                    parsed["since"] = f"{year:04d}-{month:02d}-01"
+                    parsed["until"] = f"{year:04d}-{month:02d}-{last_day:02d}"
         elif key == "tag":
             parsed["tags"].append(value.lower())
         elif key == "kind":

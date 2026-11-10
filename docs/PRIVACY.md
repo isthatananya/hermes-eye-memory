@@ -17,7 +17,7 @@ In the data directory:
 - Perceptual hash, fallback/CLIP embedding vector, and quality scores.
 - OCR text extracted from the image.
 - Dominant-color caption and any user notes or tags.
-- A small JPEG thumbnail (max 512 px long edge).
+- A small JPEG thumbnail (max 360 px long edge).
 - Album manifests and receipt reports you explicitly create.
 
 Original photos are never copied into the data directory and are never modified.

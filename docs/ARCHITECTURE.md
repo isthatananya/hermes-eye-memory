@@ -12,7 +12,7 @@ folder / camera frame
         |
         +--> EXIF (taken_at, GPS, camera)
         +--> PIL decode, resize, RGB
-        +--> quality (sharpness, exposure, resolution)
+        +--> quality (sharpness and exposure)
         +--> dhash (near-duplicate grouping)
         +--> thumbnail (data_dir/thumbs)
         +--> caption (dominant color words)
@@ -50,9 +50,9 @@ Default location:
 
 ```text
 $HERMES_HOME/plugin-data/hermes-eye-memory/
-  eye_memory.sqlite3
+  data.db
   thumbs/
-    <sha1>_<stem>.jpg
+    <sha1>.jpg
 ```
 
 When the Hermes host provides `plugin_db` and `plugin_data_dir`, those are used instead. `HERMES_EYE_MEMORY_DATA` overrides both.
@@ -60,9 +60,8 @@ When the Hermes host provides `plugin_db` and `plugin_data_dir`, those are used 
 ### Tables
 
 - `media`: one row per indexed file or camera frame.
-- `media_fts`: FTS5 mirror of `ocr_text`, `caption`, `note`, `tags`, `file_name` when FTS5 is available.
-- `albums`: album name, query, item ids, output folder, timestamp.
-- `meta`: schema version and migration markers.
+- `media_fts`: FTS5 mirror of `ocr_text`, `caption`, `note`, and `tags` when FTS5 is available.
+- `albums`: album name, query, manifest path, item count, and creation timestamp.
 
 `upsert_media` merges partial updates so a re-index does not erase a user note, caption, or tags. FTS rows are updated in the same transaction.
 
@@ -72,7 +71,7 @@ When the Hermes host provides `plugin_db` and `plugin_data_dir`, those are used 
 
 - Lexical score: FTS5 match, or LIKE fallback. Exact phrase and token overlap boost the score.
 - Visual score: cosine similarity between the query embedding and stored image embeddings. With fallback mode there is no text encoder, so this term is zero and lexical/visual-neighbor scores carry the result.
-- Final score: `0.72 * lexical + 0.28 * visual` in `auto` mode. `text` and `visual` modes use only their term.
+- Final score in `auto` mode: `0.62 * visual + 0.38 * lexical` when a CLIP text encoder is available, otherwise `0.72 * lexical + 0.28 * visual`. `text` and `visual` modes use only their term.
 
 Date, tag, folder, kind, `has:ocr`, and `has:gps` filters are applied before scoring. Results include a short reason string.
 
@@ -84,6 +83,6 @@ Date, tag, folder, kind, `has:ocr`, and `has:gps` filters are applied before sco
 
 - Missing optional model or OCR engine: log once, continue with fallback.
 - Unreadable image: record an error count, do not abort the folder.
-- Missing file during search: skip it.
+- Missing file during search: the indexed row is still returned; use `eye_forget` or re-index to clean it up.
 - Camera unavailable: return a clear error, do not crash the agent.
 - FTS5 unavailable: use LIKE search; the rest of the schema is unchanged.

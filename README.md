@@ -47,6 +47,8 @@ python -m pip install -e ".[heic]"       # pillow-heif iPhone photos
 
 Without the optional extras the plugin still runs in fallback mode: color/composition search, filenames, notes, tags, EXIF, duplicates, albums, and timeline. Optional extras need wheels for your Python version; if a model or camera package is unavailable, the related tool returns a clear error and the rest keeps working.
 
+Python 3.15 currently has no `rapidocr-onnxruntime` or `onnxruntime` wheels, so OCR and CLIP stay in fallback mode there. Use Python 3.11 to 3.13 when you need the OCR or semantic extras.
+
 ## Quick start
 
 ```bash

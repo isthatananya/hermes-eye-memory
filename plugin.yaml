@@ -45,6 +45,11 @@ config_schema:
     default: clip
     label: "Image embedding backend"
     description: "clip gives semantic search. fallback uses color and edge hashes and needs no model download."
+  camera_enabled:
+    type: bool
+    default: false
+    label: "Enable webcam tools"
+    description: "Off by default. When enabled, eye_capture, eye_look, eye_read, and eye_find can open the webcam."
   camera_index:
     type: int
     default: 0
@@ -54,3 +59,8 @@ config_schema:
     type: int
     default: 20
     label: "Default result count"
+  max_forget_query:
+    type: int
+    default: 20
+    label: "Max query-based forget"
+    description: "Maximum index entries a single query-based eye_forget call may remove."

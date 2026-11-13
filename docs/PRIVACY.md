@@ -30,13 +30,13 @@ Original photos are never copied into the data directory and are never modified.
 
 ## Deletion
 
-`eye_forget` removes index rows and thumbnails. It deletes originals only when `delete_files=true`. Deleting the whole index requires `all=true` and `confirm=true`.
+`eye_forget` removes index rows and thumbnails. The model-facing tool never deletes originals. The CLI can delete originals with `--delete-files`. Deleting the whole index requires `all=true` and `confirm=true`. Query-based removal is capped by `max_forget_query`.
 
 To remove everything, stop Hermes and delete the data directory shown by `eye_stats` or `eye_index_status`.
 
 ## Camera
 
-Camera access happens only when a camera tool is invoked. Frames are written to the data directory as normal indexed media and can be removed with `eye_forget`. No camera stream is recorded continuously and nothing is sent anywhere.
+Camera tools are disabled by default. Set `camera_enabled=true` to allow `eye_capture`, `eye_look`, `eye_read`, or `eye_find` to open the webcam. Frames are not stored unless `remember=true`; when stored, they are normal indexed media and can be removed with `eye_forget`. No camera stream is recorded continuously and nothing is sent anywhere.
 
 ## Threat model
 

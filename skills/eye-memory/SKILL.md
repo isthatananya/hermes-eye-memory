@@ -47,9 +47,9 @@ If results are weak, try one or two rephrasings. Do not claim a photo exists whe
 - `eye_look` describes the current camera view. Use it for "what is on my desk right now".
 - `eye_read` reads text or a receipt from the camera.
 - `eye_find` compares the current camera view to the library. Use it for "do I own this" or "where did I see this".
-- `eye_capture` stores a frame with an optional note and tags.
+- `eye_capture` captures a frame with an optional note and tags. It does not store the frame unless `remember=true`.
 
-Camera tools may fail if no camera is available. Report the error plainly and offer the photo-library alternative.
+Camera tools are disabled by default. If they return a disabled error, tell the user to enable `camera_enabled` in the plugin settings. Do not retry in a loop. Camera tools may also fail if no camera is available; report the error plainly and offer the photo-library alternative.
 
 ## Albums, duplicates, best shots
 
@@ -65,7 +65,7 @@ Camera tools may fail if no camera is available. Report the error plainly and of
 
 ## Receipts
 
-`eye_receipts` finds receipt photos and extracts merchant, date, and total. It writes PDF, Markdown, or CSV. OCR must be enabled and the OCR engine installed.
+`eye_receipts` finds receipt photos and extracts merchant, date, and total. It writes PDF, Markdown, or CSV under the plugin data directory. It does not accept an output path from the model. OCR must be enabled and the OCR engine installed.
 
 ```json
 {"since": "2024-01-01", "format": "markdown"}
@@ -83,16 +83,17 @@ Use `eye_remember` to attach context the user gives you. Prefer `media_id` from 
 
 ## Deletion rules
 
-- `eye_forget` without `delete_files` only removes index rows. Ask before deleting originals.
+- `eye_forget` only removes index rows. It never deletes original files.
+- Query-based removal is capped by `max_forget_query`. Prefer `media_id` or `path` for a narrow removal.
 - `all=true` requires `confirm=true`. Never set both unless the user explicitly asks to wipe the entire index.
-- Never delete files based only on a weak search match. Confirm the path or media id first.
+- Never remove index entries based only on a weak search match. Confirm the path or media id first.
 
 ## Privacy rules
 
 - Do not upload photos or OCR text anywhere.
 - Do not read the index database directly; use the tools.
 - Do not describe people's identities or infer sensitive attributes from photos.
-- Camera frames are stored locally. If the user does not want them kept, pass `remember=false` to `eye_look` or `eye_read`.
+- Camera frames are not stored unless `remember=true`. If the user does not want them kept, leave `remember` false or pass `remember=false` to `eye_look` or `eye_read`.
 
 ## Fallback behavior
 

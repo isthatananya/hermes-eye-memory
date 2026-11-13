@@ -20,6 +20,8 @@ onboarding: false
 known_issues:
   - "CLIP semantic search downloads a model on first use; set embedding_backend to fallback for offline use."
   - "Receipt parsing is heuristic and should be verified."
+  - "Camera tools are disabled by default; enable camera_enabled to allow webcam access."
+  - "eye_forget never deletes original files from the model-facing tool; query removals are capped."
 capabilities:
   provides_tools:
     - eye_index

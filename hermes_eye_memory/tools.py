@@ -226,7 +226,6 @@ def _eye_receipts(params: dict[str, Any]) -> dict[str, Any]:
         since=_str(params, "since") or None,
         until=_str(params, "until") or None,
         fmt=_str(params, "format", "pdf") or "pdf",
-        out_path=_str(params, "out_path") or None,
     )
 
 
@@ -254,17 +253,29 @@ def _eye_forget(params: dict[str, Any]) -> dict[str, Any]:
         media_id=_int(params, "media_id"),
         path=_str(params, "path") or None,
         query=_str(params, "query"),
-        delete_files=_bool(params, "delete_files"),
         all_items=_bool(params, "all"),
         confirm=_bool(params, "confirm"),
     )
 
 
+def _camera_disabled() -> dict[str, Any] | None:
+    if config.camera_enabled():
+        return None
+    return {
+        "ok": False,
+        "error": "camera tools are disabled. Set camera_enabled=true in the plugin settings "
+        "or HERMES_EYE_MEMORY_CAMERA_ENABLED=true to allow webcam access.",
+    }
+
+
 @_guard
 def _eye_capture(params: dict[str, Any]) -> dict[str, Any]:
+    disabled = _camera_disabled()
+    if disabled:
+        return disabled
     return camera.capture(
         index=_int(params, "camera_index"),
-        remember=_bool(params, "remember", True),
+        remember=_bool(params, "remember", False),
         note=_str(params, "note"),
         tags=_tags(params) or None,
     )
@@ -272,23 +283,32 @@ def _eye_capture(params: dict[str, Any]) -> dict[str, Any]:
 
 @_guard
 def _eye_look(params: dict[str, Any]) -> dict[str, Any]:
+    disabled = _camera_disabled()
+    if disabled:
+        return disabled
     return camera.look(
         index=_int(params, "camera_index"),
-        remember=_bool(params, "remember", True),
+        remember=_bool(params, "remember", False),
         run_ocr=_bool(params, "ocr", True),
     )
 
 
 @_guard
 def _eye_read(params: dict[str, Any]) -> dict[str, Any]:
+    disabled = _camera_disabled()
+    if disabled:
+        return disabled
     return camera.read(
         index=_int(params, "camera_index"),
-        remember=_bool(params, "remember", True),
+        remember=_bool(params, "remember", False),
     )
 
 
 @_guard
 def _eye_find(params: dict[str, Any]) -> dict[str, Any]:
+    disabled = _camera_disabled()
+    if disabled:
+        return disabled
     description = _str(params, "description")
     if not description:
         return {"ok": False, "error": "description is required"}

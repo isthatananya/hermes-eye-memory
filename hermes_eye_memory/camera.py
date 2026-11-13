@@ -107,7 +107,7 @@ def _describe(img: Image.Image, text: str) -> str:
 def capture(
     *,
     index: int | None = None,
-    remember: bool = True,
+    remember: bool = False,
     note: str = "",
     tags: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -144,7 +144,7 @@ def capture(
     return result
 
 
-def look(*, index: int | None = None, remember: bool = True, run_ocr: bool = True) -> dict[str, Any]:
+def look(*, index: int | None = None, remember: bool = False, run_ocr: bool = True) -> dict[str, Any]:
     frame, error = grab_frame(index)
     if error:
         return {"ok": False, "error": error}
@@ -185,7 +185,7 @@ def look(*, index: int | None = None, remember: bool = True, run_ocr: bool = Tru
     return payload
 
 
-def read(*, index: int | None = None, remember: bool = True) -> dict[str, Any]:
+def read(*, index: int | None = None, remember: bool = False) -> dict[str, Any]:
     frame, error = grab_frame(index)
     if error:
         return {"ok": False, "error": error}
@@ -239,7 +239,9 @@ def find(*, description: str, index: int | None = None, limit: int = 10) -> dict
 
 def status() -> dict[str, Any]:
     return {
+        "enabled": config.camera_enabled(),
         "opencv": available(),
         "camera_index": config.camera_index(),
-        "hint": "If capture fails, set camera_index to 1 or 2, or close other apps using the webcam.",
+        "hint": "Camera tools are off by default. Set camera_enabled=true to allow webcam access. "
+        "If capture fails, set camera_index to 1 or 2, or close other apps using the webcam.",
     }

@@ -63,12 +63,13 @@ def setup_argparse(parser: argparse.ArgumentParser) -> None:
     receipts.add_argument("--since", default=None)
     receipts.add_argument("--until", default=None)
     receipts.add_argument("--format", choices=["pdf", "markdown", "csv"], default="pdf")
-    receipts.add_argument("--out", default=None)
+    receipts.add_argument("--out", default=None, help="Bare file name under the plugin receipts directory")
 
     capture = sub.add_parser("capture", help="Capture a webcam frame")
     capture.add_argument("--camera", type=int, default=None)
     capture.add_argument("--note", default="")
     capture.add_argument("--tags", default="")
+    capture.add_argument("--remember", action="store_true", help="Store the frame in visual memory")
 
     look = sub.add_parser("look", help="Look through the webcam")
     look.add_argument("--camera", type=int, default=None)
@@ -88,7 +89,7 @@ def setup_argparse(parser: argparse.ArgumentParser) -> None:
     forget.add_argument("--id", type=int, default=None)
     forget.add_argument("--path", default=None)
     forget.add_argument("--query", default="")
-    forget.add_argument("--delete-files", action="store_true")
+    forget.add_argument("--delete-files", action="store_true", help="Also delete original files (CLI only)")
     forget.add_argument("--all", action="store_true")
     forget.add_argument("--yes", action="store_true")
 
@@ -221,9 +222,13 @@ def handle(args, *_extra) -> int:
         return 0 if payload.get("ok") else 1
 
     if command == "receipts":
-        payload = _call(
-            "eye_receipts",
-            {"since": args.since, "until": args.until, "format": args.format, "out_path": args.out},
+        from . import actions
+
+        payload = actions.receipt_report(
+            since=args.since,
+            until=args.until,
+            fmt=args.format,
+            out_path=args.out,
         )
         if payload.get("ok"):
             print(f"{payload['count']} receipt(s) · total {payload['total']} · {payload['path']}")
@@ -232,31 +237,42 @@ def handle(args, *_extra) -> int:
         return 0 if payload.get("ok") else 1
 
     if command in {"capture", "look", "read", "find"}:
-        name = f"eye_{command}"
-        params: dict[str, Any] = {"camera_index": getattr(args, "camera", None)}
+        from . import camera
+
         if command == "capture":
-            params.update({"note": args.note, "tags": args.tags})
+            payload = camera.capture(
+                index=args.camera,
+                remember=args.remember,
+                note=args.note,
+                tags=[part.strip() for part in args.tags.split(",") if part.strip()] or None,
+            )
         elif command == "look":
-            params.update({"ocr": not args.no_ocr, "remember": not args.no_remember})
+            payload = camera.look(
+                index=args.camera,
+                remember=not args.no_remember,
+                run_ocr=not args.no_ocr,
+            )
         elif command == "read":
-            params.update({"remember": not args.no_remember})
-        elif command == "find":
-            params.update({"description": " ".join(args.description), "limit": args.limit})
-        payload = _call(name, params)
+            payload = camera.read(index=args.camera, remember=not args.no_remember)
+        else:
+            payload = camera.find(
+                description=" ".join(args.description),
+                index=args.camera,
+                limit=args.limit,
+            )
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0 if payload.get("ok") else 1
 
     if command == "forget":
-        payload = _call(
-            "eye_forget",
-            {
-                "media_id": args.id,
-                "path": args.path,
-                "query": args.query,
-                "delete_files": args.delete_files,
-                "all": args.all,
-                "confirm": args.yes,
-            },
+        from . import actions
+
+        payload = actions.forget(
+            media_id=args.id,
+            path=args.path,
+            query=args.query,
+            delete_files=args.delete_files,
+            all_items=args.all,
+            confirm=args.yes,
         )
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0 if payload.get("ok") else 1

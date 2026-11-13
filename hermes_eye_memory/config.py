@@ -51,6 +51,13 @@ def embedding_backend() -> str:
     return value if value in {"clip", "fallback"} else "clip"
 
 
+def camera_enabled() -> bool:
+    value = get("camera_enabled", False)
+    if isinstance(value, str):
+        return value.strip().lower() not in {"0", "false", "no", "off", ""}
+    return bool(value)
+
+
 def camera_index() -> int:
     try:
         return int(get("camera_index", 0))
@@ -61,5 +68,12 @@ def camera_index() -> int:
 def max_results() -> int:
     try:
         return max(1, min(200, int(get("max_results", 20))))
+    except (TypeError, ValueError):
+        return 20
+
+
+def max_forget_query() -> int:
+    try:
+        return max(1, min(200, int(get("max_forget_query", 20))))
     except (TypeError, ValueError):
         return 20

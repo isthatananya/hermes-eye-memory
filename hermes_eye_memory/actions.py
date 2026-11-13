@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from . import db, ocr, search
+from . import config, db, ocr, search
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +162,40 @@ def _write_pdf(path: Path, rows: list[dict[str, Any]], total: float) -> None:
     document.build(story)
 
 
+def _receipt_target(out_path: str | None, extension: str) -> tuple[Path | None, str | None]:
+    """Resolve a report path under the plugin receipts directory.
+
+    The model-facing tool never supplies a path. The CLI may supply a bare file
+    name, but separators, drive prefixes, traversal, and overwrites are refused.
+    """
+    receipts_dir = db.data_dir() / "receipts"
+    receipts_dir.mkdir(parents=True, exist_ok=True)
+    if out_path:
+        raw = str(out_path).strip()
+        if (
+            not raw
+            or raw in {".", ".."}
+            or "/" in raw
+            or "\\" in raw
+            or ":" in raw
+            or Path(raw).name != raw
+        ):
+            return None, "out_path must be a bare file name under the receipts directory"
+        target = (receipts_dir / raw).with_suffix("." + extension)
+    else:
+        target = receipts_dir / f"receipts-{_timestamp()}.{extension}"
+    try:
+        resolved = target.resolve()
+        receipts_root = receipts_dir.resolve()
+    except OSError as exc:
+        return None, f"invalid report path: {exc}"
+    if not resolved.is_relative_to(receipts_root):
+        return None, "out_path escapes the receipts directory"
+    if target.exists():
+        return None, f"refusing to overwrite existing report: {target.name}"
+    return target, None
+
+
 def receipt_report(
     *,
     since: str | None = None,
@@ -197,8 +231,11 @@ def receipt_report(
     if fmt not in {"pdf", "md", "markdown", "csv"}:
         fmt = "pdf"
     extension = {"pdf": "pdf", "md": "md", "markdown": "md", "csv": "csv"}[fmt]
-    target = Path(out_path).expanduser() if out_path else db.data_dir() / "receipts" / f"receipts-{_timestamp()}.{extension}"
-    target.parent.mkdir(parents=True, exist_ok=True)
+    target, path_error = _receipt_target(out_path, extension)
+    if path_error or target is None:
+        if own_conn:
+            conn.close()
+        return {"ok": False, "error": path_error or "invalid report path"}
 
     used = extension
     if extension == "pdf":
@@ -207,6 +244,10 @@ def receipt_report(
         except Exception as exc:
             logger.warning("PDF report failed, writing markdown instead: %s", exc)
             target = target.with_suffix(".md")
+            if target.exists():
+                if own_conn:
+                    conn.close()
+                return {"ok": False, "error": f"refusing to overwrite existing report: {target.name}"}
             used = "md"
             extension = "md"
 
@@ -273,6 +314,7 @@ def forget(
     delete_files: bool = False,
     all_items: bool = False,
     confirm: bool = False,
+    max_query: int | None = None,
     conn: sqlite3.Connection | None = None,
 ) -> dict[str, Any]:
     own_conn = conn is None
@@ -288,7 +330,15 @@ def forget(
         if row:
             targets.append(row)
     elif query:
-        found = search.search(query, limit=500, conn=conn)
+        cap = config.max_forget_query() if max_query is None else max(1, int(max_query))
+        found = search.search(query, limit=cap + 1, conn=conn)
+        if len(found["results"]) > cap:
+            if own_conn:
+                conn.close()
+            return {
+                "ok": False,
+                "error": f"query matched more than {cap} items; use media_id or path for a narrower removal",
+            }
         targets = [row for row in (db.get_media(conn, item["id"]) for item in found["results"]) if row]
     elif all_items:
         if not confirm:

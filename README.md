@@ -86,14 +86,14 @@ The same operations are exposed as 16 Hermes tools.
 | `eye_album` | Create a named album manifest; optionally copy files. |
 | `eye_duplicates` | Group near-duplicates and bursts; suggest the best shot. |
 | `eye_best` | Rank candidates by sharpness, exposure, and resolution. |
-| `eye_receipts` | Extract merchant, date, and total; write PDF, Markdown, or CSV. |
+| `eye_receipts` | Extract merchant, date, and total; write PDF, Markdown, or CSV under the plugin data directory. |
 | `eye_timeline` | Counts by day, month, or year with examples. |
 | `eye_stats` | Totals, bytes, date range, OCR and embedding coverage. |
-| `eye_forget` | Remove from the index; optional file deletion with confirmation. |
-| `eye_capture` | Capture a webcam frame into memory. |
-| `eye_look` | Describe the current camera view: size, colors, OCR text. |
-| `eye_read` | Read text or a receipt with the camera. |
-| `eye_find` | Capture the camera view and find similar library photos. |
+| `eye_forget` | Remove index entries; never deletes original files. Query removals are capped. |
+| `eye_capture` | Capture a webcam frame; disabled by default and not stored unless `remember=true`. |
+| `eye_look` | Describe the current camera view; disabled by default. |
+| `eye_read` | Read text or a receipt with the camera; disabled by default. |
+| `eye_find` | Capture the camera view and find similar library photos; disabled by default. |
 | `eye_remember` | Attach a note, caption, or tags to a photo or search result. |
 | `eye_recall` | Recall earlier camera frames and photos by text, tag, or time. |
 
@@ -108,8 +108,10 @@ Search filters include `year:2024`, `month:2024-05`, `day:2024-05-12`, `tag:rece
 | `library_path` | `""` | Default folder for `eye_index` and CLI commands. |
 | `ocr_enabled` | `true` | Read text in photos. Slower, enables receipt search. |
 | `embedding_backend` | `clip` | `clip` for semantic search, `fallback` for a no-download color/edge vector. |
+| `camera_enabled` | `false` | Allow the camera tools to open the webcam. |
 | `camera_index` | `0` | Default desktop camera. |
 | `max_results` | `20` | Default result count. |
+| `max_forget_query` | `20` | Maximum index entries one query-based `eye_forget` call may remove. |
 
 Environment overrides:
 
@@ -119,8 +121,10 @@ Environment overrides:
 | `HERMES_EYE_MEMORY_LIBRARY` | Default library folder. |
 | `HERMES_EYE_MEMORY_OCR_ENABLED` | `true` / `false`. |
 | `HERMES_EYE_MEMORY_EMBEDDING_BACKEND` | `clip` / `fallback`. |
+| `HERMES_EYE_MEMORY_CAMERA_ENABLED` | `true` / `false`; camera tools are off by default. |
 | `HERMES_EYE_MEMORY_CAMERA_INDEX` | Default camera index. |
 | `HERMES_EYE_MEMORY_MAX_RESULTS` | Default result count. |
+| `HERMES_EYE_MEMORY_MAX_FORGET_QUERY` | Maximum query-based index removals. |
 
 The plugin uses Hermes's `plugin_db` and `plugin_data_dir` when available. Otherwise it stores data under `HERMES_HOME/plugin-data/hermes-eye-memory`.
 
@@ -141,9 +145,10 @@ See [docs/PRIVACY.md](docs/PRIVACY.md) for the full data inventory and threat mo
 - Photos never leave the machine. There is no network code in the plugin.
 - OCR is local. The optional OCR engine runs on CPU.
 - The index stores paths, EXIF, hashes, OCR text, captions, tags, and small thumbnails. Original files are not modified.
-- `eye_forget` only removes index rows by default. Deleting originals requires `delete_files=true`, and `all=true` requires `confirm=true`.
+- `eye_forget` only removes index rows. The model-facing tool never deletes originals. The CLI can delete originals with `--delete-files`, and `all=true` requires `confirm=true`.
+- Query-based `eye_forget` is capped by `max_forget_query`; use `media_id` or `path` for narrower removals.
 - Albums are manifests plus optional copies. They never move or delete originals.
-- Camera access is explicit: only `eye_capture`, `eye_look`, `eye_read`, and `eye_find` open a camera.
+- Camera tools are disabled by default. Enable `camera_enabled` before `eye_capture`, `eye_look`, `eye_read`, or `eye_find` can open the webcam. Frames are not stored unless `remember=true`.
 - Background indexing is bounded to one job at a time.
 
 ## Demo

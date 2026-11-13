@@ -93,13 +93,12 @@ SCHEMAS: list[dict[str, Any]] = [
     ),
     _schema(
         "eye_receipts",
-        "Find receipt photos, extract merchant, date, and amount with OCR, and write a PDF, Markdown, or CSV report. "
-        "Runs fully offline.",
+        "Find receipt photos, extract merchant, date, and amount with OCR, and write a PDF, Markdown, or CSV report "
+        "under the plugin data directory. Runs fully offline.",
         {
             "since": _DATE,
             "until": _DATE,
             "format": {"type": "string", "enum": ["pdf", "markdown", "csv"], "description": "Report format. Defaults to pdf."},
-            "out_path": {"type": "string", "description": "Optional output file path."},
         },
     ),
     _schema(
@@ -119,50 +118,50 @@ SCHEMAS: list[dict[str, Any]] = [
     ),
     _schema(
         "eye_forget",
-        "Remove media from the local index, and optionally delete the original files. Refuses to delete the whole "
-        "library unless confirm is true.",
+        "Remove media from the local index. Original files are never deleted by this tool. Query-based removal is "
+        "capped; use media_id or path for a narrower removal. Refuses to remove the whole index unless confirm is true.",
         {
-            "media_id": {"type": "integer", "description": "Delete one media id."},
-            "path": {"type": "string", "description": "Delete one exact file path."},
-            "query": {"type": "string", "description": "Delete every media item matching this search."},
-            "delete_files": {"type": "boolean", "description": "Also delete the original image files. Defaults to false."},
-            "all": {"type": "boolean", "description": "Delete every indexed item. Requires confirm=true."},
+            "media_id": {"type": "integer", "description": "Remove one media id from the index."},
+            "path": {"type": "string", "description": "Remove one exact indexed path from the index."},
+            "query": {"type": "string", "description": "Remove matching index entries, up to the configured cap."},
+            "all": {"type": "boolean", "description": "Remove every indexed item. Requires confirm=true."},
             "confirm": {"type": "boolean", "description": "Required for all=true."},
         },
     ),
     _schema(
         "eye_capture",
-        "Capture a photo from the desktop webcam and add it to visual memory as a frame.",
+        "Capture a photo from the desktop webcam. Webcam access is disabled by default; enable camera_enabled first. "
+        "The frame is not stored unless remember=true.",
         {
             "camera_index": _CAMERA,
-            "remember": {"type": "boolean", "description": "Index the frame into visual memory. Defaults to true."},
+            "remember": {"type": "boolean", "description": "Index the frame into visual memory. Defaults to false."},
             "note": {"type": "string", "description": "Optional note stored with the frame."},
             "tags": {"type": "array", "items": {"type": "string"}, "description": "Optional tags for the frame."},
         },
     ),
     _schema(
         "eye_look",
-        "Take a quick look through the webcam. Returns size, dominant colors, and OCR text, and can remember the "
-        "frame for later recall.",
+        "Take a quick look through the webcam. Webcam access is disabled by default; enable camera_enabled first. "
+        "Returns size, dominant colors, and OCR text. The frame is not stored unless remember=true.",
         {
             "camera_index": _CAMERA,
-            "remember": {"type": "boolean", "description": "Store the frame in visual memory. Defaults to true."},
+            "remember": {"type": "boolean", "description": "Store the frame in visual memory. Defaults to false."},
             "ocr": {"type": "boolean", "description": "Run OCR on the frame. Defaults to true."},
         },
     ),
     _schema(
         "eye_read",
-        "Point the webcam at text or a receipt and read it with local OCR. Detects receipt fields such as merchant, "
-        "date, and total.",
+        "Point the webcam at text or a receipt and read it with local OCR. Webcam access is disabled by default; "
+        "enable camera_enabled first. The frame is not stored unless remember=true.",
         {
             "camera_index": _CAMERA,
-            "remember": {"type": "boolean", "description": "Store the frame and OCR text. Defaults to true."},
+            "remember": {"type": "boolean", "description": "Store the frame and OCR text. Defaults to false."},
         },
     ),
     _schema(
         "eye_find",
-        "Capture the current webcam view and find visually similar photos already in the library. Useful for "
-        "questions like do I own this, or where did I see this.",
+        "Capture the current webcam view and find visually similar photos already in the library. Webcam access is "
+        "disabled by default; enable camera_enabled first.",
         {
             "description": {"type": "string", "description": "What you are looking for, for logging and context."},
             "camera_index": _CAMERA,

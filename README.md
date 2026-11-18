@@ -2,10 +2,7 @@
 
 # Hermes Eye Memory
 
-### Give your Hermes agent a photographic memory.
-
-**Search your photos by meaning. Cull duplicates. Turn receipt snaps into reports. Ask what the webcam sees.**<br>
-All on your machine. No cloud, no uploads, no account.
+A local photo index and search plugin for Hermes. Runs entirely on your machine.
 
 [![CI](https://github.com/isthatananya/hermes-eye-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/isthatananya/hermes-eye-memory/actions/workflows/ci.yml)
 [![Hermes Plugin Catalog](https://img.shields.io/badge/Hermes-plugin%20catalog-7c3aed)](https://github.com/NousResearch/hermes-agent/tree/main/plugin-catalog)
@@ -21,29 +18,27 @@ hermes plugins install hermes-eye-memory
 
 ---
 
-## Just ask
+## What it does
 
-> *"Find the photo of the red mug on the wooden table."*
->
-> *"Which receipts did I photograph in May 2024?"*
->
-> *"Make an album of the beach, best shots only."*
->
-> *"What's on my desk right now?"*
->
-> *"Where have I seen this before?"* (camera to library)
+Hermes Eye Memory indexes a photo folder into a local SQLite database (EXIF, hashes, embeddings, OCR text, thumbnails) and gives Hermes 16 tools to search and organize it. It can also use the webcam if you turn that on. There is no cloud vision API, upload, or account.
 
-Most photo tools are either a cloud black box or a folder of filenames. Hermes Eye Memory gives your agent a **private, queryable visual memory**, exposed as 16 tools.
+Example requests:
+
+- "Find the photo of the red mug on the wooden table."
+- "Which receipts did I photograph in May 2024?"
+- "Make an album of the beach, best shots only."
+- "What is on my desk right now?" (camera)
+- "Where did I see this?" (camera to library)
 
 ## Install
 
-Requires Hermes **v0.22.0+** (run `hermes update` if you're older).
+Requires Hermes 0.22.0 or later.
 
 ```bash
 hermes plugins install hermes-eye-memory
 ```
 
-That's it. Hermes pulls the reviewed, pinned version from the [official plugin catalog](https://github.com/NousResearch/hermes-agent/tree/main/plugin-catalog) and asks before installing dependencies.
+This installs the version pinned in the [Hermes plugin catalog](https://github.com/NousResearch/hermes-agent/tree/main/plugin-catalog). Hermes asks before installing Python dependencies.
 
 <details>
 <summary><b>Other ways to install</b></summary>
@@ -64,18 +59,18 @@ python -m hermes_eye_memory.cli search "red mug"
 
 </details>
 
-### Power-ups (optional)
+### Optional extras
 
-The core needs only Pillow, NumPy, and reportlab. Add extras to unlock more:
+The core install needs Pillow, NumPy, and reportlab. Python 3.11+ is required.
 
-| Extra | Unlocks | Install |
+| Extra | Adds | Install |
 | --- | --- | --- |
 | `semantic` | CLIP search by meaning (fastembed) | `pip install -e ".[semantic]"` |
 | `ocr` | Local text reading, receipt search (rapidocr) | `pip install -e ".[ocr]"` |
 | `camera` | Webcam tools (opencv) | `pip install -e ".[camera]"` |
 | `heic` | iPhone photos (pillow-heif) | `pip install -e ".[heic]"` |
 
-No extras? It still works in **fallback mode**: color and composition search, filenames, notes, tags, EXIF, duplicates, albums, and timeline. If a model or camera package is missing, only that tool returns a clear error. Everything else keeps working.
+Without the extras the plugin runs in fallback mode: color and composition search, filenames, notes, tags, EXIF, duplicates, albums, and timeline. If a model or camera package is unavailable, the related tool returns an error and the rest keep working.
 
 > [!NOTE]
 > Python 3.15 has no `onnxruntime` / `rapidocr-onnxruntime` wheels yet, so OCR and CLIP stay in fallback mode there. Use Python 3.11–3.13 for those extras.
@@ -94,7 +89,7 @@ python -m hermes_eye_memory.cli search "tag:receipt year:2024"
 python -m hermes_eye_memory.cli stats
 python -m hermes_eye_memory.cli timeline --bucket month
 
-# 4. Kill duplicates, keep the best shot
+# 4. Find near-duplicates and pick the best shot
 python -m hermes_eye_memory.cli duplicates --threshold 6
 python -m hermes_eye_memory.cli best "beach" --limit 5
 
@@ -105,14 +100,15 @@ python -m hermes_eye_memory.cli album "garden" --name garden-2024 --copy
 python -m hermes_eye_memory.cli receipts --since 2024-01-01 --format markdown
 ```
 
-> [!TIP]
-> No photos handy? Generate a synthetic library and try the whole flow:
-> ```bash
-> python scripts/make_demo_library.py --out demo_library --clean
-> python -m hermes_eye_memory.cli index demo_library
-> python -m hermes_eye_memory.cli search "red mug"
-> ```
-> See [docs/DEMO.md](docs/DEMO.md) for a scripted walkthrough.
+To try it on a generated sample library:
+
+```bash
+python scripts/make_demo_library.py --out demo_library --clean
+python -m hermes_eye_memory.cli index demo_library
+python -m hermes_eye_memory.cli search "red mug"
+```
+
+See [docs/DEMO.md](docs/DEMO.md) for a full walkthrough.
 
 ## How it works
 
@@ -168,17 +164,17 @@ Originals are never modified. Everything lives in one local index. Details in [d
 
 **Search filters:** `year:2024` · `month:2024-05` · `day:2024-05-12` · `tag:receipt` · `is:receipt` · `has:ocr` · `has:gps` · `kind:photo|frame`. Quoted phrases stay together.
 
-## Private by design
+## Privacy and safety
 
-- **Photos never leave your machine.** There's no network code in the plugin; the only download is the optional CLIP model on first use.
-- **OCR runs locally** on CPU.
-- **Originals are untouchable from the agent.** The model-facing `eye_forget` only removes index rows, and query-based removals are capped by `max_forget_query`. Deleting files needs the CLI's `--delete-files`, and `all=true` requires `confirm=true`.
-- **Reports stay in the sandbox.** `eye_receipts` writes only under the plugin data directory and never overwrites.
-- **The camera is opt-in.** The camera tools stay disabled until you enable `camera_enabled`, and frames aren't stored unless `remember=true`.
-- **Albums are non-destructive:** manifests plus optional copies, never moves or deletes.
+- Photos stay on your machine. The plugin has no network code; the only download is the optional CLIP model on first use.
+- OCR runs locally on CPU.
+- The `eye_forget` tool only removes index rows and cannot delete original files. Query-based removals are capped by `max_forget_query`. The CLI can delete files with `--delete-files`, and `all=true` requires `confirm=true`.
+- `eye_receipts` writes reports only under the plugin data directory and does not overwrite existing files.
+- Camera tools are disabled until you set `camera_enabled`. Frames are not stored unless `remember=true`.
+- Albums are manifests plus optional copies. They never move or delete originals.
 - Background indexing runs one job at a time.
 
-The index stores paths, EXIF, hashes, OCR text, captions, tags, and small thumbnails. Full data inventory and threat model: [docs/PRIVACY.md](docs/PRIVACY.md).
+The index stores paths, EXIF, hashes, OCR text, captions, tags, and small thumbnails. See [docs/PRIVACY.md](docs/PRIVACY.md) for the full data inventory and threat model.
 
 ## Configuration
 
@@ -234,7 +230,7 @@ Fallback embeddings combine color histograms, a grayscale thumbnail, and a perce
 - HEIC needs the `heic` extra.
 - No video indexing. Camera frames are stills.
 - Receipt parsing is heuristic: best-effort merchant, date, and total, not accounting-grade.
-- Face recognition and people labeling are **deliberately** not included.
+- Face recognition and people labeling are deliberately not included.
 
 ## Development
 

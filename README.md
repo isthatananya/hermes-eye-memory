@@ -1,6 +1,6 @@
 <div align="center">
 
-# 👁️ Hermes Eye Memory
+# Hermes Eye Memory
 
 ### Give your Hermes agent a photographic memory.
 
@@ -21,21 +21,21 @@ hermes plugins install hermes-eye-memory
 
 ---
 
-## ✨ Just ask
+## Just ask
 
-> 🔎 *"Find the photo of the red mug on the wooden table."*
+> *"Find the photo of the red mug on the wooden table."*
 >
-> 🧾 *"Which receipts did I photograph in May 2024?"*
+> *"Which receipts did I photograph in May 2024?"*
 >
-> 🏖️ *"Make an album of the beach, best shots only."*
+> *"Make an album of the beach, best shots only."*
 >
-> 📷 *"What's on my desk right now?"*
+> *"What's on my desk right now?"*
 >
-> 🧠 *"Where have I seen this before?"* (camera → library)
+> *"Where have I seen this before?"* (camera to library)
 
 Most photo tools are either a cloud black box or a folder of filenames. Hermes Eye Memory gives your agent a **private, queryable visual memory**, exposed as 16 tools.
 
-## 🚀 Install
+## Install
 
 Requires Hermes **v0.22.0+** (run `hermes update` if you're older).
 
@@ -64,7 +64,7 @@ python -m hermes_eye_memory.cli search "red mug"
 
 </details>
 
-### 🧩 Power-ups (optional)
+### Power-ups (optional)
 
 The core needs only Pillow, NumPy, and reportlab. Add extras to unlock more:
 
@@ -80,7 +80,7 @@ No extras? It still works in **fallback mode**: color and composition search, fi
 > [!NOTE]
 > Python 3.15 has no `onnxruntime` / `rapidocr-onnxruntime` wheels yet, so OCR and CLIP stay in fallback mode there. Use Python 3.11–3.13 for those extras.
 
-## ⚡ Quick start
+## Quick start
 
 ```bash
 # 1. Index a folder (re-runs skip unchanged files)
@@ -114,23 +114,23 @@ python -m hermes_eye_memory.cli receipts --since 2024-01-01 --format markdown
 > ```
 > See [docs/DEMO.md](docs/DEMO.md) for a scripted walkthrough.
 
-## 🧠 How it works
+## How it works
 
 ```mermaid
 flowchart LR
-    A[📁 Your photos] --> B[eye_index]
-    C[📷 Webcam<br/><i>opt-in</i>] --> D[eye_capture / look / read / find]
-    B --> E[(🗄️ Local SQLite index<br/>EXIF · hashes · embeddings<br/>OCR text · thumbnails)]
+    A[Your photos] --> B[eye_index]
+    C[Webcam<br/><i>opt-in</i>] --> D[eye_capture / look / read / find]
+    B --> E[(Local SQLite index<br/>EXIF · hashes · embeddings<br/>OCR text · thumbnails)]
     D -. remember=true .-> E
-    E --> F[🔎 Search · Albums · Duplicates<br/>Receipts · Timeline · Recall]
-    F --> G[🤖 Hermes agent]
+    E --> F[Search · Albums · Duplicates<br/>Receipts · Timeline · Recall]
+    F --> G[Hermes agent]
 ```
 
 Originals are never modified. Everything lives in one local index. Details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## 🛠️ Tools
+## Tools
 
-**📚 Library**
+**Library**
 
 | Tool | What it does |
 | --- | --- |
@@ -139,7 +139,7 @@ Originals are never modified. Everything lives in one local index. Details in [d
 | `eye_stats` | Totals, bytes, date range, OCR and embedding coverage. |
 | `eye_forget` | Remove index entries. Never deletes original files; query removals are capped. |
 
-**🔎 Find & organize**
+**Find & organize**
 
 | Tool | What it does |
 | --- | --- |
@@ -150,7 +150,7 @@ Originals are never modified. Everything lives in one local index. Details in [d
 | `eye_timeline` | Counts by day, month, or year with examples. |
 | `eye_receipts` | Extract merchant, date, and total; write PDF, Markdown, or CSV under the plugin data directory. |
 
-**📷 Camera** (off by default)
+**Camera** (off by default)
 
 | Tool | What it does |
 | --- | --- |
@@ -159,7 +159,7 @@ Originals are never modified. Everything lives in one local index. Details in [d
 | `eye_read` | Read text or a receipt with the camera. |
 | `eye_find` | Capture the camera view and find similar library photos. |
 
-**🧠 Memory**
+**Memory**
 
 | Tool | What it does |
 | --- | --- |
@@ -168,19 +168,19 @@ Originals are never modified. Everything lives in one local index. Details in [d
 
 **Search filters:** `year:2024` · `month:2024-05` · `day:2024-05-12` · `tag:receipt` · `is:receipt` · `has:ocr` · `has:gps` · `kind:photo|frame`. Quoted phrases stay together.
 
-## 🔒 Private by design
+## Private by design
 
-- 🏠 **Photos never leave your machine.** There's no network code in the plugin; the only download is the optional CLIP model on first use.
-- 📝 **OCR runs locally** on CPU.
-- 🛡️ **Originals are untouchable from the agent.** The model-facing `eye_forget` only removes index rows, and query-based removals are capped by `max_forget_query`. Deleting files needs the CLI's `--delete-files`, and `all=true` requires `confirm=true`.
-- 📂 **Reports stay in the sandbox.** `eye_receipts` writes only under the plugin data directory and never overwrites.
-- 📷 **The camera is opt-in.** The camera tools stay disabled until you enable `camera_enabled`, and frames aren't stored unless `remember=true`.
-- 🖼️ **Albums are non-destructive:** manifests plus optional copies, never moves or deletes.
-- ⏱️ Background indexing runs one job at a time.
+- **Photos never leave your machine.** There's no network code in the plugin; the only download is the optional CLIP model on first use.
+- **OCR runs locally** on CPU.
+- **Originals are untouchable from the agent.** The model-facing `eye_forget` only removes index rows, and query-based removals are capped by `max_forget_query`. Deleting files needs the CLI's `--delete-files`, and `all=true` requires `confirm=true`.
+- **Reports stay in the sandbox.** `eye_receipts` writes only under the plugin data directory and never overwrites.
+- **The camera is opt-in.** The camera tools stay disabled until you enable `camera_enabled`, and frames aren't stored unless `remember=true`.
+- **Albums are non-destructive:** manifests plus optional copies, never moves or deletes.
+- Background indexing runs one job at a time.
 
 The index stores paths, EXIF, hashes, OCR text, captions, tags, and small thumbnails. Full data inventory and threat model: [docs/PRIVACY.md](docs/PRIVACY.md).
 
-## ⚙️ Configuration
+## Configuration
 
 <details>
 <summary><b>Plugin settings</b> (<code>plugin.yaml</code>)</summary>
@@ -228,7 +228,7 @@ Fallback embeddings combine color histograms, a grayscale thumbnail, and a perce
 
 </details>
 
-## 🚧 Limitations
+## Limitations
 
 - Without the CLIP and OCR extras, search falls back to color, composition, filenames, notes, and tags.
 - HEIC needs the `heic` extra.
@@ -236,7 +236,7 @@ Fallback embeddings combine color histograms, a grayscale thumbnail, and a perce
 - Receipt parsing is heuristic: best-effort merchant, date, and total, not accounting-grade.
 - Face recognition and people labeling are **deliberately** not included.
 
-## 🧪 Development
+## Development
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -271,6 +271,6 @@ hermes plugins validate . --install-deps
 
 <div align="center">
 
-MIT licensed · Made with 👁️ by [@isthatananya](https://github.com/isthatananya) · [Report an issue](https://github.com/isthatananya/hermes-eye-memory/issues)
+MIT licensed · Made by [@isthatananya](https://github.com/isthatananya) · [Report an issue](https://github.com/isthatananya/hermes-eye-memory/issues)
 
 </div>
